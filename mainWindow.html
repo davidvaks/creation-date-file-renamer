@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>File Creation Date Renamer</title>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    </head>
+    <body>
+        <nav>
+            <div class="nav-wrapper #26a69a teal lighten-1">
+                <a class="brand-logo center">File Creation Date Renamer</a>
+            </div>
+        </nav>
+        <div class="container">
+            <form>      
+                <div class="row valign-wrapper">
+                    <div class="input-field col s9">
+                        <input placeholder="Root Directory" id="rootText" type="text" class="validate">
+                    </div>
+                    <a class="waves-effect waves-light btn-small col s1" id="chooseDir">
+                        <i class="material-icons">folder</i>
+                    </a>
+                    <div class="waves-effect waves-light btn-small col s2" id="clearDir">
+                        <span>Clear</span>
+                    </div>
+                </div>
+                <div>
+                    <p>
+                        <label>
+                            <input type="radio" class="with-gap" name="extentions" id="specific" value="specific" checked />
+                            <span>Specific Extentions</span>
+                        </label>
+                        <input type="text" id="allowedExtentions">
+                        <label>
+                            <input type="radio" class="with-gap" name="extentions" id="all" value="all"/>
+                            <span>All Files</span>
+                        </label>
+                    </p>
+                </div>
+                <div>
+                    <p>
+                        <label>
+                            <input type="checkbox" id="include:subdirs" checked>
+                            <span>Include Subfolders</span>
+                        </label>
+                    </p>
+                </div>
+                <br>
+                <div class="btn z-depth-3" id="startRenaming">
+                    <span class="center-align">Rename Files</span>
+                </div>
+                <script>
+                    const electron = require('electron');
+                    const {ipcRenderer} = electron;
+                    document.getElementById('allowedExtentions').value = 'png, gif, jpg, jpeg, bmp, mov, avi, aae, mpg'
+                    document.getElementById('all').addEventListener('click', () => {
+                        document.getElementById('allowedExtentions').disabled = true;
+                    });
+                    document.getElementById('specific').addEventListener('click', () => {
+                        document.getElementById('allowedExtentions').disabled = false;
+                    });
+                    document.getElementById('chooseDir').addEventListener('click', chooseDirectory);
+                    document.getElementById('clearDir').addEventListener('click', () => {
+                        document.getElementById('rootText').value = '';
+                    });
+                    document.getElementById('startRenaming').addEventListener('click', submit)
+
+                    function chooseDirectory(e) {
+                        e.preventDefault();
+                        ipcRenderer.send('directory:choose', {});
+                    }
+
+                    function submit(e) {
+                        e.preventDefault();
+                        const rootDirectory = document.getElementById('rootText').value
+                        const chosenExtentions = document.getElementById('specific').checked ? document.getElementById('allowedExtentions').value : '*';
+                        if (rootDirectory != null && rootDirectory != '' && chosenExtentions != '') {
+                            ipcRenderer.send('rename:start', {
+                                root: rootDirectory,
+                                extentions: chosenExtentions,
+                                includeSubDirectories: document.getElementById('include:subdirs').checked
+                            });
+                        }
+                    }
+
+                    ipcRenderer.on('directory:chosen', function(event, item){
+                        document.getElementById('rootText').value = item.directory;
+                    });
+                </script>
+            </form>
+        </div>
+    </body>
+</html>

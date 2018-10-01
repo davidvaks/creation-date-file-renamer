@@ -1,0 +1,117 @@
+const electron = require('electron');
+const {dialog} = electron;
+const fs = require('fs');
+const path = require('path');
+
+let allowedExtentions = new Set();
+let allExtentions = false;
+
+exports.renameFiles = function rename(item) {
+    if (isValidRootDirectory(item.root)) {
+        allowedExtentions = getAllowedExtentions(item.extentions);
+        let queue = [item.root];
+        while (queue.length > 0) {
+            const currentDir = queue.shift();
+            report("current directory is " + currentDir);
+            fs.readdirSync(currentDir).forEach(file => {
+                try {
+                    const stats = fs.statSync(currentDir + '/' + file);
+                    if (stats.isDirectory()) {
+                        if (item.includeSubDirectories) queue.push(currentDir + '/' + file);
+                    } else {
+                        handleFile(currentDir, file, stats);
+                    }
+                } catch(err) {
+                    report(err.message)
+                }
+              });
+        }
+    }
+}
+
+function getAllowedExtentions(extentionString) {
+    if (extentionString == '*') {
+        allExtentions = true
+        return new Set();
+    } else {
+        allExtentions = false;
+        const extentions = extentionString
+            .split(",")
+            .map(ext => '.' + ext.trim())
+        return new Set(extentions);
+    }
+
+}
+
+function handleFile(currentDir, file, stats) {
+    const extention = path.extname(file).toLowerCase();
+    if (allowedExtentions.has(extention) || allExtentions) {
+        const creationTime = resolveCreationTime(stats);
+        const formattedCreationTime = formatTime(creationTime);
+        if (!alreadyRenamed(file, formattedCreationTime)) {
+            const newFileName = resolveNewFileName(currentDir, formattedCreationTime, extention)
+            renameFile(currentDir, file, newFileName);
+            report('   ' + file + ' -> ' + newFileName);
+        } else {
+            report('   ' + file + ' skipped (already renamed)')
+        }
+    } else {
+        report('   ' + file + ' skipped');
+    }
+}
+
+function renameFile(currentDir, oldFilename, newFilename) {
+    try {
+        if (fs.existsSync(currentDir + '/' + newFilename)) {
+            report('        ' + oldFilename + ' skipped - ' + newFilename + ' already exist')
+        } else {
+            fs.renameSync(currentDir + '/' + oldFilename, currentDir + '/' + newFilename)
+        }
+    } catch(err) {
+        report(err)
+    }
+}
+
+function resolveNewFileName(currentDir, formattedCreationTime, extention) {
+    let newFileName = formattedCreationTime + extention;
+    let counter = 1;
+    while (fs.existsSync(currentDir + '/' + newFileName)) {
+        newFileName = formattedCreationTime + '-' + counter + extention;
+        counter++;
+    }
+    return newFileName
+}
+
+function alreadyRenamed(file, formattedCreationTime) {
+    return file.includes(formattedCreationTime)
+}
+
+function resolveCreationTime(fileStats) {
+    const dates = [fileStats.atime, fileStats.mtime, fileStats.ctime, fileStats.birthtime];
+    const ordered = dates.sort((a,b) => {
+        return Date.parse(a) > Date.parse(b);
+    });
+    return ordered[0];
+}
+
+function formatTime(time) {
+    return new Date(time)
+                    .toISOString()
+                    .replace("T", "_")
+                    .replace("Z", "")
+                    .replace(/:/g, "-")
+                    .replace(".000", "")
+                    .replace(".", "-");
+}
+
+function isValidRootDirectory(root) {
+    const exists = fs.existsSync(root)
+    if (!exists) {
+        dialog.showErrorBox('Directory does not exist', root)
+    }
+    return exists;
+}
+
+function report(message) {
+    console.log(message)
+}
