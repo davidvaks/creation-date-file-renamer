@@ -5,14 +5,16 @@ const path = require('path');
 
 let allowedExtentions = new Set();
 let allExtentions = false;
+let jobWindow;
 
-exports.renameFiles = function rename(item) {
+exports.renameFiles = function rename(item, window) {
     if (isValidRootDirectory(item.root)) {
+        jobWindow = window;
         allowedExtentions = getAllowedExtentions(item.extentions);
         let queue = [item.root];
         while (queue.length > 0) {
             const currentDir = queue.shift();
-            report("current directory is " + currentDir);
+            report(currentDir);
             fs.readdirSync(currentDir).forEach(file => {
                 try {
                     const stats = fs.statSync(currentDir + '/' + file);
@@ -26,6 +28,7 @@ exports.renameFiles = function rename(item) {
                 }
               });
         }
+        jobWindow = null;
     }
 }
 
@@ -113,5 +116,10 @@ function isValidRootDirectory(root) {
 }
 
 function report(message) {
-    console.log(message)
+    console.log(message);
+    writeToJobWindow(message);
+}
+
+function writeToJobWindow(message) {
+    jobWindow.webContents.send('file:event', message);
 }

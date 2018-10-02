@@ -4,31 +4,49 @@ const renamer = require('./renamer.js');
 const {app, BrowserWindow, Menu, dialog, ipcMain} = electron;
 
 let mainWindow;
+let renameJobWindow;
 let rootDirectory;
 
-function createWindow() {
+function createMainWindow() {
     mainWindow = new BrowserWindow({});
     mainWindow.loadFile('mainWindow.html');
+    mainWindow.on('closed', function() {
+        app.quit();
+    });
     const mainMenu = Menu.buildFromTemplate(mainMenuTemplate);
     Menu.setApplicationMenu(mainMenu);
 };
+
+function createRenameJobWindow(item) {
+    renameJobWindow = new BrowserWindow({
+        width: 600,
+        height: 500,
+        title: 'Rename Job'
+    });
+    renameJobWindow.loadFile('renameJobWindow.html');
+    renameJobWindow.on('close', function(){
+        renameJobWindow = null;
+    });
+    renameJobWindow.webContents.on('did-finish-load', function() {
+        renamer.renameFiles(item, renameJobWindow);
+    });
+}
 
 function chooseRootDirectory() {
     rootDirectory = dialog.showOpenDialog(mainWindow, { properties: ['openDirectory'] }, (filePaths) => {
         if (filePaths != null) {
          rootDirectory = filePaths[0];
          mainWindow.webContents.send('directory:chosen', {directory: rootDirectory});
-         //dialog.showMessageBox(mainWindow, {title: "Chosen Directory", message: rootDirectory});
         }
     });
 }
 
 exports.selectDirectory = chooseRootDirectory;
 
-app.on('ready', createWindow);
+app.on('ready', createMainWindow);
 
 ipcMain.on('directory:choose', chooseRootDirectory);
-ipcMain.on('rename:start', (event, item) => renamer.renameFiles(item));
+ipcMain.on('rename:start', (event, item) => createRenameJobWindow(item));
 
 const mainMenuTemplate = [
     {
