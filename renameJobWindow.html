@@ -3,22 +3,57 @@
     <head>
         <title>Rename Job</title>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     </head>
     <body>
-        <h3>Rename Job</h3>
-        <br>
-        <ul class="collection"></ul>
+        <div class="container">
+            <nav>
+                <div class="nav-wrapper #26a69a teal lighten-1">
+                    <a class="brand-logo left" id="rename:status">Renaming...</a>
+                </div>
+            </nav>
+            <br>
+            <div class="progress">
+                <div class="indeterminate" id="progress-bar"></div>
+            </div>
+            <ul class="collection"></ul>
+        </div>
         <script>
             const electron = require('electron');
             const {ipcRenderer} = electron;
             const ul = document.querySelector('ul');
-            ipcRenderer.on('file:event', function(e, item){
+            ipcRenderer.on('file:renamed', function(e, item){
                 let li = document.createElement('li');
                 li.className = "collection-item";
-                const itemText = document.createTextNode(item);
-                li.appendChild(itemText);
+                const collectionItem = fileItem(item);
+                li.appendChild(collectionItem);
                 ul.appendChild(li);
             });
+
+            ipcRenderer.on('rename:done', function(e, item){
+                document.getElementById("rename:status").innerText = "Renaming... Done!"
+                const progressBar = document.getElementById("progress-bar")
+                progressBar.className = "determinate"
+                progressBar.style = "width: 100%"
+            });
+
+            function fileItem(message) {
+                const parent = document.createElement("div");
+                const icon = document.createElement("i");
+                icon.className = "material-icons";
+                icon.appendChild(document.createTextNode("insert_drive_file"));
+                parent.appendChild(icon);
+                parent.appendChild(document.createTextNode(message));
+                parent.appendChild(badge('renamed', 'blue'));
+                return parent;
+            }
+
+            function badge(caption, color) {
+                const span = document.createElement("span");
+                span.className = "new badge " + color;
+                span.dataset.badgeCaption=caption;
+                return span;
+            }
         </script>
     </body>
 </html>

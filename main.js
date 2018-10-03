@@ -8,7 +8,10 @@ let renameJobWindow;
 let rootDirectory;
 
 function createMainWindow() {
-    mainWindow = new BrowserWindow({});
+    mainWindow = new BrowserWindow({
+        width: 800,
+        height: 650
+    });
     mainWindow.loadFile('mainWindow.html');
     mainWindow.on('closed', function() {
         app.quit();

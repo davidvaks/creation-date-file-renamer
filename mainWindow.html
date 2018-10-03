@@ -17,37 +17,44 @@
                     <div class="input-field col s9">
                         <input placeholder="Root Directory" id="rootText" type="text" class="validate">
                     </div>
-                    <a class="waves-effect waves-light btn-small col s1" id="chooseDir">
+                    <a class="waves-effect waves-light btn-small col s1"id="chooseDir">
                         <i class="material-icons">folder</i>
                     </a>
                     <div class="waves-effect waves-light btn-small col s2" id="clearDir">
                         <span>Clear</span>
                     </div>
                 </div>
-                <div>
-                    <p>
-                        <label>
-                            <input type="radio" class="with-gap" name="extentions" id="specific" value="specific" checked />
-                            <span>Specific Extentions</span>
-                        </label>
-                        <input type="text" id="allowedExtentions">
-                        <label>
-                            <input type="radio" class="with-gap" name="extentions" id="all" value="all"/>
-                            <span>All Files</span>
-                        </label>
-                    </p>
-                </div>
-                <div>
-                    <p>
-                        <label>
-                            <input type="checkbox" id="include:subdirs" checked>
-                            <span>Include Subfolders</span>
-                        </label>
-                    </p>
+                <div class="card-panel">
+                    <div class="section">
+                        <h6><b>Extentions:</b></h6>
+                        <p>
+                            <label>
+                                <input type="radio" class="with-gap" name="extentions" id="specific" value="specific" checked />
+                                <span>Specific Extentions</span>
+                            </label>
+                            <input type="text" id="allowedExtentions">
+                            <label>
+                                <input type="radio" class="with-gap" name="extentions" id="all" value="all"/>
+                                <span>All Files</span>
+                            </label>
+                        </p>
+                    </div>
+                    <div class="divider"></div>
+                    <div class="section">
+                        <h6><b>General Settings:</b></h6>
+                        <p>
+                            <label>
+                                <input type="checkbox" id="include:subdirs" checked>
+                                <span>Include Subfolders</span>
+                            </label>
+                        </p>
+                    </div>
                 </div>
                 <br>
-                <div class="btn z-depth-3" id="startRenaming">
-                    <span class="center-align">Rename Files</span>
+                <div class="row">
+                    <div class="btn z-depth-3 col s12" id="startRenaming">
+                        <span class="center-align">Rename Files</span>
+                    </div>
                 </div>
                 <script src="uiLogic.js"></script>
             </form>

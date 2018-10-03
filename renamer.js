@@ -7,6 +7,22 @@ let allowedExtentions = new Set();
 let allExtentions = false;
 let jobWindow;
 
+const events = {
+    renamed: {
+        name: 'file:renamed',
+        caption: 'renamed',
+        color: 'blue'
+    },
+    skipped: {
+        name: 'file:skipped',
+        caption: 'skipped',
+        color: 'grey'
+    },
+    directory: {
+        name: 'directory:event'
+    }
+};
+
 exports.renameFiles = function rename(item, window) {
     if (isValidRootDirectory(item.root)) {
         jobWindow = window;
@@ -28,7 +44,7 @@ exports.renameFiles = function rename(item, window) {
                 }
               });
         }
-        jobWindow = null;
+        jobWindow.webContents.send('rename:done');
     }
 }
 
@@ -54,6 +70,7 @@ function handleFile(currentDir, file, stats) {
         if (!alreadyRenamed(file, formattedCreationTime)) {
             const newFileName = resolveNewFileName(currentDir, formattedCreationTime, extention)
             renameFile(currentDir, file, newFileName);
+
             report('   ' + file + ' -> ' + newFileName);
         } else {
             report('   ' + file + ' skipped (already renamed)')
@@ -121,5 +138,5 @@ function report(message) {
 }
 
 function writeToJobWindow(message) {
-    jobWindow.webContents.send('file:event', message);
+    jobWindow.webContents.send('file:renamed', message);
 }
