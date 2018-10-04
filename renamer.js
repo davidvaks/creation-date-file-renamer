@@ -2,26 +2,11 @@ const electron = require('electron');
 const {dialog} = electron;
 const fs = require('fs');
 const path = require('path');
+const events = require('./renameEvents.js');
 
 let allowedExtentions = new Set();
 let allExtentions = false;
 let jobWindow;
-
-const events = {
-    renamed: {
-        name: 'file:renamed',
-        caption: 'renamed',
-        color: 'blue'
-    },
-    skipped: {
-        name: 'file:skipped',
-        caption: 'skipped',
-        color: 'grey'
-    },
-    directory: {
-        name: 'directory:event'
-    }
-};
 
 exports.renameFiles = function rename(item, window) {
     if (isValidRootDirectory(item.root)) {
@@ -30,7 +15,7 @@ exports.renameFiles = function rename(item, window) {
         let queue = [item.root];
         while (queue.length > 0) {
             const currentDir = queue.shift();
-            report(currentDir);
+            report(currentDir, events.eventTypes.directory);
             fs.readdirSync(currentDir).forEach(file => {
                 try {
                     const stats = fs.statSync(currentDir + '/' + file);
@@ -40,11 +25,11 @@ exports.renameFiles = function rename(item, window) {
                         handleFile(currentDir, file, stats);
                     }
                 } catch(err) {
-                    report(err.message)
+                    report(err.message, events.eventTypes.error)
                 }
               });
         }
-        jobWindow.webContents.send('rename:done');
+        jobWindow.webContents.send(events.eventTypes.done);
     }
 }
 
@@ -71,24 +56,24 @@ function handleFile(currentDir, file, stats) {
             const newFileName = resolveNewFileName(currentDir, formattedCreationTime, extention)
             renameFile(currentDir, file, newFileName);
 
-            report('   ' + file + ' -> ' + newFileName);
+            report('   ' + file + ' -> ' + newFileName, events.eventTypes.renamed);
         } else {
-            report('   ' + file + ' skipped (already renamed)')
+            report('   ' + file + ' skipped (already renamed)', events.eventTypes.skipped)
         }
     } else {
-        report('   ' + file + ' skipped');
+        report('   ' + file + ' skipped', events.eventTypes.skipped);
     }
 }
 
 function renameFile(currentDir, oldFilename, newFilename) {
     try {
         if (fs.existsSync(currentDir + '/' + newFilename)) {
-            report('        ' + oldFilename + ' skipped - ' + newFilename + ' already exist')
+            report('        ' + oldFilename + ' skipped - ' + newFilename + ' already exist', events.eventTypes.skipped)
         } else {
             fs.renameSync(currentDir + '/' + oldFilename, currentDir + '/' + newFilename)
         }
     } catch(err) {
-        report(err)
+        report(err, events.eventTypes.error)
     }
 }
 
@@ -132,11 +117,11 @@ function isValidRootDirectory(root) {
     return exists;
 }
 
-function report(message) {
+function report(message, eventType) {
     console.log(message);
-    writeToJobWindow(message);
+    writeToJobWindow(message, eventType);
 }
 
-function writeToJobWindow(message) {
-    jobWindow.webContents.send('file:renamed', message);
+function writeToJobWindow(message, eventType) {
+    jobWindow.webContents.send(eventType, message);
 }

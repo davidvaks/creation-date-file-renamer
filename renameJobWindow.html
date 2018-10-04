@@ -18,42 +18,6 @@
             </div>
             <ul class="collection"></ul>
         </div>
-        <script>
-            const electron = require('electron');
-            const {ipcRenderer} = electron;
-            const ul = document.querySelector('ul');
-            ipcRenderer.on('file:renamed', function(e, item){
-                let li = document.createElement('li');
-                li.className = "collection-item";
-                const collectionItem = fileItem(item);
-                li.appendChild(collectionItem);
-                ul.appendChild(li);
-            });
-
-            ipcRenderer.on('rename:done', function(e, item){
-                document.getElementById("rename:status").innerText = "Renaming... Done!"
-                const progressBar = document.getElementById("progress-bar")
-                progressBar.className = "determinate"
-                progressBar.style = "width: 100%"
-            });
-
-            function fileItem(message) {
-                const parent = document.createElement("div");
-                const icon = document.createElement("i");
-                icon.className = "material-icons";
-                icon.appendChild(document.createTextNode("insert_drive_file"));
-                parent.appendChild(icon);
-                parent.appendChild(document.createTextNode(message));
-                parent.appendChild(badge('renamed', 'blue'));
-                return parent;
-            }
-
-            function badge(caption, color) {
-                const span = document.createElement("span");
-                span.className = "new badge " + color;
-                span.dataset.badgeCaption=caption;
-                return span;
-            }
-        </script>
+        <script src="renameJobUILogic.js"></script>
     </body>
 </html>
