@@ -1,10 +1,11 @@
 const electron = require('electron');
 const events = require('./renameEvents.js');
-const {ipcRenderer} = electron;
+const {ipcRenderer, shell} = electron;
 
 let eventsUI = {};
 eventsUI[events.eventTypes.renamed] = {
     icon: 'insert_drive_file',
+    class: 'collection-item',
     badge: {
         caption: 'renamed',
         color: 'blue'
@@ -12,6 +13,7 @@ eventsUI[events.eventTypes.renamed] = {
 }
 eventsUI[events.eventTypes.skipped] = {
     icon: 'insert_drive_file',
+    class: 'collection-item',
     badge: {
         caption: 'skipped',
         color: 'grey'
@@ -19,47 +21,53 @@ eventsUI[events.eventTypes.skipped] = {
 }
 eventsUI[events.eventTypes.directory] = {
     icon: 'folder',
+    class: 'collection-header',
     badge: null
 }
 eventsUI[events.eventTypes.error] = {
     icon: 'insert_drive_file',
+    class: 'collection-item',
     badge: {
         caption: 'error',
         color: 'red'
     }
 }
 
-const ul = document.querySelector('ul');
+const ul = document.getElementById('collection-parent');
 
-ipcRenderer.on(events.eventTypes.renamed, function(e, item){
-    addCollectionItem(events.eventTypes.renamed, item)
+ipcRenderer.on(events.eventTypes.renamed, (e, item, path) => {
+    addCollectionItem(events.eventTypes.renamed, item, path)
 });
 
-ipcRenderer.on(events.eventTypes.skipped, function(e, item){
-    addCollectionItem(events.eventTypes.skipped, item)
+ipcRenderer.on(events.eventTypes.skipped, (e, item, path) => {
+    addCollectionItem(events.eventTypes.skipped, item, path)
 });
 
-ipcRenderer.on(events.eventTypes.directory, function(e, item){
+ipcRenderer.on(events.eventTypes.directory, (e, item) => {
     addCollectionItem(events.eventTypes.directory, item)
 });
 
-ipcRenderer.on(events.eventTypes.error, function(e, item){
-    addCollectionItem(events.eventTypes.error, item)
+ipcRenderer.on(events.eventTypes.error, (e, item, path) => {
+    addCollectionItem(events.eventTypes.error, item, path)
 });
 
-ipcRenderer.on(events.eventTypes.done, function(e, item){
+ipcRenderer.on(events.eventTypes.done, (e, item) => {
     document.getElementById("rename:status").innerText = "Renaming... Done!"
     const progressBar = document.getElementById("progress-bar")
     progressBar.className = "determinate"
     progressBar.style = "width: 100%"
 });
 
-function addCollectionItem(event, item) {
-    let li = document.createElement('li');
-    li.className = "collection-item";
+function addCollectionItem(event, item, path) {
+    let a = document.createElement('a');
+    a.href = '#';
+    if (path != null) {
+        a.addEventListener('click', () => openFile(path))
+    }
+    a.className = eventsUI[event].class;
     const collectionItem = createItem(event, item);
-    li.appendChild(collectionItem);
-    ul.appendChild(li);
+    a.appendChild(collectionItem);
+    ul.appendChild(a);
 }
 
 function createItem(event, message) {
@@ -72,7 +80,10 @@ function createItem(event, message) {
         icon.appendChild(document.createTextNode(iconCaption));
         parent.appendChild(icon);
     }
-    parent.appendChild(document.createTextNode(message));
+    const font = document.createElement('font');
+    font.color = '#000000';
+    font.appendChild(document.createTextNode(message));
+    parent.appendChild(font);
     if (badge != null) {
         parent.appendChild(createBadge(badge.caption, badge.color));
     }
@@ -84,5 +95,9 @@ function createBadge(caption, color) {
     span.className = "new badge " + color;
     span.dataset.badgeCaption=caption;
     return span;
+}
+
+function openFile(path) {
+    shell.openItem(path);
 }
 

@@ -31,6 +31,6 @@ function submit(e) {
     }
 }
 
-ipcRenderer.on('directory:chosen', function(event, item){
+ipcRenderer.on('directory:chosen', (event, item) => {
     document.getElementById('rootText').value = item.directory;
 });

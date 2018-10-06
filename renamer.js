@@ -8,7 +8,7 @@ let allowedExtentions = new Set();
 let allExtentions = false;
 let jobWindow;
 
-exports.renameFiles = function rename(item, window) {
+exports.renameFiles = (item, window) => {
     if (isValidRootDirectory(item.root)) {
         jobWindow = window;
         allowedExtentions = getAllowedExtentions(item.extentions);
@@ -56,9 +56,9 @@ function handleFile(currentDir, file, stats) {
             const newFileName = resolveNewFileName(currentDir, formattedCreationTime, extention)
             renameFile(currentDir, file, newFileName);
 
-            report('   ' + file + ' -> ' + newFileName, events.eventTypes.renamed);
+            report('   ' + file + ' -> ' + newFileName, events.eventTypes.renamed, currentDir + '/' + newFileName);
         } else {
-            report('   ' + file + ' skipped (already renamed)', events.eventTypes.skipped)
+            report('   ' + file + ' skipped (already renamed)', events.eventTypes.skipped, currentDir + '/' + file)
         }
     } else {
         report('   ' + file + ' skipped', events.eventTypes.skipped);
@@ -117,11 +117,11 @@ function isValidRootDirectory(root) {
     return exists;
 }
 
-function report(message, eventType) {
+function report(message, eventType, filePath) {
     console.log(message);
-    writeToJobWindow(message, eventType);
+    writeToJobWindow(message, eventType, filePath);
 }
 
-function writeToJobWindow(message, eventType) {
-    jobWindow.webContents.send(eventType, message);
+function writeToJobWindow(message, eventType, filePath) {
+    jobWindow.webContents.send(eventType, message, filePath);
 }

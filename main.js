@@ -13,7 +13,7 @@ function createMainWindow() {
         height: 650
     });
     mainWindow.loadFile('mainWindow.html');
-    mainWindow.on('closed', function() {
+    mainWindow.on('closed', () => {
         app.quit();
     });
     const mainMenu = Menu.buildFromTemplate(mainMenuTemplate);
@@ -27,10 +27,10 @@ function createRenameJobWindow(item) {
         title: 'Rename Job'
     });
     renameJobWindow.loadFile('renameJobWindow.html');
-    renameJobWindow.on('close', function(){
+    renameJobWindow.on('close', () => {
         renameJobWindow = null;
     });
-    renameJobWindow.webContents.on('did-finish-load', function() {
+    renameJobWindow.webContents.on('did-finish-load', () => {
         renamer.renameFiles(item, renameJobWindow);
     });
 }
