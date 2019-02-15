@@ -7,10 +7,14 @@ const events = require('./renameEvents.js');
 let allowedExtentions = new Set();
 let allExtentions = false;
 let jobWindow;
+let loggingEnabled = true;
+let rootDir;
 
 exports.renameFiles = (item, window) => {
     if (isValidRootDirectory(item.root)) {
         jobWindow = window;
+        rootDir = item.root;
+        loggingEnabled = item.loggingEnabled
         allowedExtentions = getAllowedExtentions(item.extentions);
         let queue = [item.root];
         while (queue.length > 0) {

@@ -7,10 +7,13 @@ let mainWindow;
 let renameJobWindow;
 let rootDirectory;
 
+//SET_ENV
+process.env.NODE_ENV = 'production'
+
 function createMainWindow() {
     mainWindow = new BrowserWindow({
         width: 800,
-        height: 650
+        height: 680
     });
     mainWindow.loadFile('mainWindow.html');
     mainWindow.on('closed', () => {

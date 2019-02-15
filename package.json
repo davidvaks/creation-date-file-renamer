@@ -10,10 +10,13 @@
   "author": "David Vaks",
   "license": "ISC",
   "repository": {
-  "type": "git",
-  "url": "git@github.com:davidvaks/creation-date-file-renamer.git"
+    "type": "git",
+    "url": "git@github.com:davidvaks/creation-date-file-renamer.git"
   },
-  "dependencies": {
-    "electron": "^3.0.2"
+  "dependencies": {},
+  "devDependencies": {
+    "electron": "^3.1.3",
+    "electron-builder": "^20.38.5",
+    "electron-packager": "^13.0.1"
   }
 }

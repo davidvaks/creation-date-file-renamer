@@ -26,7 +26,8 @@ function submit(e) {
         ipcRenderer.send('rename:start', {
             root: rootDirectory,
             extentions: chosenExtentions,
-            includeSubDirectories: document.getElementById('include:subdirs').checked
+            includeSubDirectories: document.getElementById('include-subdirs').checked,
+            loggingEnabled: document.getElementById('create-log').checked
         });
     }
 }
